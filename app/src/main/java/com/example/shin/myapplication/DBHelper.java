@@ -30,7 +30,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 " fileName TEXT," +
                 " content TEXT); ");
         db.execSQL("INSERT INTO SYTABLE VALUES ('1','','','','',''); " );
-        db.close();
     }
 
     // DB 업그레이드를 위해 버전이 변경될 때 호출되는 함수
@@ -38,6 +37,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
+
 
     public void insert(MailVO vo) {
         // 읽고 쓰기가 가능하게 DB 열기
@@ -89,12 +89,6 @@ public class DBHelper extends SQLiteOpenHelper {
         // DB에 있는 데이터를 쉽게 처리하기 위해 Cursor를 사용하여 테이블에 있는 모든 데이터 출력
         Cursor cursor = db.rawQuery("SELECT * FROM SYTABLE", null);
         cursor.moveToNext();
-        System.out.println("asdf : here! "+ cursor.getString(0));
-        System.out.println("asdf : here! "+ cursor.getString(1));
-        System.out.println("asdf : here! "+ cursor.getString(2));
-        System.out.println("asdf : here! "+ cursor.getString(3));
-        System.out.println("asdf : here! "+ cursor.getString(4));
-        System.out.println("asdf : here! "+ cursor.getString(5));
 
         vo.setSender(cursor.getString(1));
         vo.setRecipent(cursor.getString(2));

@@ -1,6 +1,9 @@
 package com.example.shin.myapplication;
 
 
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -36,9 +39,12 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import android.os.Looper;
 import android.os.StrictMode;
 import android.provider.MediaStore;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
@@ -88,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     public LinearLayout ll;
     public LinearLayout L1;
     public LinearLayout L2;
+    public ConstraintLayout C1;
     public HorizontalScrollView hs;
     public ArrayList<String> imgsrc;
     public ArrayList<Bitmap> imgBit;
@@ -139,14 +146,20 @@ public class MainActivity extends AppCompatActivity {
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         deviceOrientation = new DeviceOrientation();
         vo = new MailVO();
-        dbHelper = new DBHelper(getApplicationContext(), "SYDB.db", null, 1);
+        try {
+            dbHelper = new DBHelper(getApplicationContext(), "SYDB.db", null, 1);
+        }catch (Exception e){
+            Toast.makeText(getApplicationContext(),"메일 전송 시도 후 오류 시 문의주세요.",Toast.LENGTH_SHORT).show();
+        }
         dbHelper.delete();
         imgBit = new ArrayList<>();
         imgFile = new ArrayList<>();
         hs = findViewById(R.id.hs);
         L1 = findViewById(R.id.L1);
         L2 = findViewById(R.id.L2);
+        C1 = findViewById(R.id.c1);
         initSurfaceView();
+
         set_mail_content();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
@@ -459,21 +472,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void send_email(View view) {
+                sending();
+    }
+    public void sending(){
         try {
+
             GMailSender gMailSender = new GMailSender(user, passwd);
             //GMailSender.sendMail(제목, 본문내용, 받는사람);), options);
             //setImage(getRotatedBitmap(getRotatedBitmap(getRotatedBitmap(originalBm, mDeviceRotation),mDeviceRotation),mDeviceRotation));
-            if(vo.getSender().equals("")){
-                Toast.makeText(getApplicationContext(),"보내는 사람을 입력해주세요.",Toast.LENGTH_SHORT).show();
-            }else if(vo.getRecipent().equals("")){
-                Toast.makeText(getApplicationContext(),"받는 사람을 입력해주세요.",Toast.LENGTH_SHORT).show();
+            if (vo.getSender().equals("")) {
+                Toast.makeText(getApplicationContext(), "보내는 사람을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (vo.getRecipent().equals("")) {
+                Toast.makeText(getApplicationContext(), "받는 사람을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                return;
             }
-           // gMailSender.sendMail(subject, imgsrc.get(imgsrc.size() - 1).toString(), sender, recipient, imgFile,vo);
-            gMailSender.sendMail(imgFile,vo);
+            // gMailSender.sendMail(subject, imgsrc.get(imgsrc.size() - 1).toString(), sender, recipient, imgFile,vo);
+
+            gMailSender.sendMail(imgFile, vo);
             Toast.makeText(getApplicationContext(), "이메일을 성공적으로 보냈습니다.", Toast.LENGTH_SHORT).show();
             imgBit.clear();
             imgFile.clear();
-            for(int i=0;i<imgsrc.size();i++){
+            for (int i = 0; i < imgsrc.size(); i++) {
                 File f = new File(imgsrc.get(i));
                 f.delete();
             }
@@ -489,7 +509,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "사진을 먼저 찍어주세요.", Toast.LENGTH_SHORT).show();
         }
     }
-
     public void set_mail(View view) {
         set_mail_content();
         L1.setVisibility(View.GONE);
@@ -530,9 +549,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void send_email2(View view) {
+        save_content(view);
         L1.setVisibility(View.VISIBLE);
         L2.setVisibility(View.GONE);
+        set_mail_content();
         send_email(view);
+    }
+
+    public void appStart(View view) {
+        L1.setVisibility(View.VISIBLE);
+        L2.setVisibility(View.GONE);
+        C1.setVisibility(View.GONE);
+    }
+
+    public void clear_photo(View view) {
+        imgBit.clear();
+        imgFile.clear();
+        for (int i = 0; i < imgsrc.size(); i++) {
+            File f = new File(imgsrc.get(i));
+            f.delete();
+        }
+        imgsrc.clear();
+        ll.removeAllViews();
     }
 
     private class SaveImageTask extends AsyncTask<Bitmap, Void, Void> {

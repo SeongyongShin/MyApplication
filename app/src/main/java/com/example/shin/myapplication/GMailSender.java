@@ -1,4 +1,5 @@
 package com.example.shin.myapplication;
+import android.app.AlertDialog;
 import android.content.pm.PackageInstaller;
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -27,6 +28,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 public class GMailSender extends javax.mail.Authenticator
 {
@@ -35,7 +37,7 @@ public class GMailSender extends javax.mail.Authenticator
     private String password;
     private Session session;
     private MailVO vo;
-
+    private AlertDialog ad;
     public GMailSender(String user, String password)
     {
         this.user = user;
@@ -85,7 +87,7 @@ public class GMailSender extends javax.mail.Authenticator
                 MimeBodyPart mbp2 = new MimeBodyPart();
                 FileDataSource fds = new FileDataSource(attachment.get(i));
                 mbp2.setDataHandler(new DataHandler(fds));
-                mbp2.setFileName(vo.getFileName()+(i+1)+".jpg");
+                mbp2.setFileName(MimeUtility.encodeText(vo.getFileName())+(i+1)+".jpg");
                 mbp.add(mbp2);
             }
 
