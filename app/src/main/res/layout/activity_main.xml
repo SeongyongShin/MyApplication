@@ -13,7 +13,7 @@
         android:background="#00C7C5C5"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <SurfaceView
             android:id="@+id/surfaceView"
@@ -164,7 +164,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:hint="Shinhae@koreanair.com"
+                android:hint="제목을 입력해주세요"
                 android:inputType="textPersonName" />
         </LinearLayout>
 
@@ -187,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:hint="ex) 파손 ( + 자동 숫자 추가)"
+                android:hint="파일명 ( + 숫자 자동 추가 )"
                 android:inputType="textPersonName" />
         </LinearLayout>
 
@@ -227,7 +227,8 @@
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ssy@naver.com, ssy@gmail.com 과 같이 \n컴마( , ) 로 구분하면 여러 명에게 발송 가능"
+            android:gravity="center"
+            android:text="ssy@naver.com, ssy@gmail.com 과 같이 \n콤마( , ) 로 구분하면 여러 명에게 발송 가능"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
     </LinearLayout>
