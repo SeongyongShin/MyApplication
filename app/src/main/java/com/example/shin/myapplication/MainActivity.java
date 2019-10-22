@@ -48,12 +48,16 @@ import android.util.SparseIntArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
-
+import android.view.ViewGroup.LayoutParams;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,6 +65,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import javax.mail.MessagingException;
 import javax.mail.SendFailedException;
@@ -80,18 +85,33 @@ public class MainActivity extends AppCompatActivity {
     private SensorManager mSensorManager;
     private DeviceOrientation deviceOrientation;
     int mDSI_height, mDSI_width;
-    private ImageView imageView;
+    public LinearLayout ll;
+    public LinearLayout L1;
+    public LinearLayout L2;
+    public HorizontalScrollView hs;
     public ArrayList<String> imgsrc;
+    public ArrayList<Bitmap> imgBit;
+    public ArrayList<File> imgFile;
+    public String subject = "";
+    public String sender = "";
+    public String recipient = "";
+    public String user = "noreply3875@gmail.com";
+    private String passwd = "AEjHL4NerXmmo1WG8aPs_Cebc5ZWTkEHwI37IywIbbwuL22rQrl-LV93YFUPyxRDU0rNrd1QWlq-VxAWOjno-HR-m-RBzOFHeg";
+    private MailVO vo;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    DBHelper dbHelper;
     static {
         ORIENTATIONS.append(ExifInterface.ORIENTATION_NORMAL, 0);
         ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_90, 90);
         ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_180, 180);
         ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_270, 270);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         // 상태바를 안보이도록 합니다.
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -101,8 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         imgsrc = new ArrayList<>();
         setContentView(R.layout.activity_main);
-        imageView = findViewById(R.id.imageView);
-        ImageButton button = findViewById(R.id.take_photo);
+        Button button = findViewById(R.id.take_photo);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -113,15 +132,25 @@ public class MainActivity extends AppCompatActivity {
                 .permitDiskReads()
                 .permitDiskWrites()
                 .permitNetwork().build());
-
+        ll = findViewById(R.id.ll);
         mSurfaceView = findViewById(R.id.surfaceView);
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         deviceOrientation = new DeviceOrientation();
-
+        vo = new MailVO();
+        dbHelper = new DBHelper(getApplicationContext(), "SYDB.db", null, 1);
+        dbHelper.delete();
+        imgBit = new ArrayList<>();
+        imgFile = new ArrayList<>();
+        hs = findViewById(R.id.hs);
+        L1 = findViewById(R.id.L1);
+        L2 = findViewById(R.id.L2);
         initSurfaceView();
+        set_mail_content();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -188,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
             Size largestPreviewSize = map.getOutputSizes(ImageFormat.JPEG)[0];
             Log.i("LargestSize", largestPreviewSize.getWidth() + " " + largestPreviewSize.getHeight());
 
-            setAspectRatioTextureView(largestPreviewSize.getHeight(),largestPreviewSize.getWidth());
+            setAspectRatioTextureView(largestPreviewSize.getHeight(), largestPreviewSize.getWidth());
 
             mImageReader = ImageReader.newInstance(largestPreviewSize.getWidth(), largestPreviewSize.getHeight(), ImageFormat.JPEG,/*maxImages*/7);
             mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mainHandler);
@@ -210,14 +239,26 @@ public class MainActivity extends AppCompatActivity {
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            BitmapFactory.Options op = new BitmapFactory.Options();
+            op.inSampleSize = 4;
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, op);
             //setImage(bitmap);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                new SaveImageTask().execute(bitmap);
+                    imgBit.add(bitmap);
+
+                    new SaveImageTask().execute(bitmap);
+//                    BitmapFactory.Options options = new BitmapFactory.Options();
+//                    Bitmap originalBm;
+//                    originalBm = BitmapFactory.decodeFile(imgsrc.get(imgsrc.size() - 1), options);
+//                    File file = new File(imgsrc.get(imgsrc.size() - 1));
+//                    imgFile.add(file);
+                                //Check
                 }
             }).start();
+            image.close();
+            image.close();
         }
     };
 
@@ -294,7 +335,6 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-
     public void takePicture() {
 
         try {
@@ -308,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
             // 센서를 사용하는 것으로 변경
             //deviceRotation = getResources().getConfiguration().orientation;
             mDeviceRotation = ORIENTATIONS.get(deviceOrientation.getOrientation());
-            Log.d("@@@", mDeviceRotation+"");
+            Log.d("@@@", mDeviceRotation + "");
 
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, mDeviceRotation);
             CaptureRequest mCaptureRequest = captureRequestBuilder.build();
@@ -319,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Bitmap getRotatedBitmap(Bitmap bitmap, int degrees) throws Exception {
-        if(bitmap == null) return null;
+        if (bitmap == null) return null;
         if (degrees == 0) return bitmap;
 
         Matrix m = new Matrix();
@@ -327,7 +367,6 @@ public class MainActivity extends AppCompatActivity {
 
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
     }
-
 
 
     /**
@@ -353,16 +392,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     //출처 - https://codeday.me/ko/qa/20190310/39556.html
+
     /**
      * A copy of the Android internals  insertImage method, this method populates the
      * meta data with DATE_ADDED and DATE_TAKEN. This fixes a common problem where media
      * that is inserted manually gets saved at the end of the gallery (because date is not populated).
+     *
      * @see android.provider.MediaStore.Images.Media#insertImage(ContentResolver, Bitmap, String, String)
      */
     public final String insertImage(ContentResolver cr,
-                                           Bitmap source,
-                                           String title,
-                                           String description) {
+                                    Bitmap source,
+                                    String title,
+                                    String description) {
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, title);
@@ -408,25 +449,36 @@ public class MainActivity extends AppCompatActivity {
 
         return stringUrl;
     }
-    public String getPath(Uri uri)
-    {
-        String[] projection = { MediaStore.Images.Media.DATA };
+
+    public String getPath(Uri uri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = managedQuery(uri, projection, null, null, null);
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
         cursor.moveToFirst();
         return cursor.getString(column_index);
     }
+
     public void send_email(View view) {
         try {
-            GMailSender gMailSender = new GMailSender("ssystarsky1@gmail.com", "950918zzx");
-            //GMailSender.sendMail(제목, 본문내용, 받는사람);
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            Bitmap originalBm;
-            originalBm = BitmapFactory.decodeFile(imgsrc.get(imgsrc.size()-1), options);
-            File file = new File(imgsrc.get(imgsrc.size()-1));
-            setImage(getRotatedBitmap(getRotatedBitmap(getRotatedBitmap(originalBm, mDeviceRotation),mDeviceRotation),mDeviceRotation));
-            gMailSender.sendMail("제목입니다", imgsrc.get(imgsrc.size()-1).toString(),"ssystarsky1@gmail.com", "ssystarsky@naver.com",file);
+            GMailSender gMailSender = new GMailSender(user, passwd);
+            //GMailSender.sendMail(제목, 본문내용, 받는사람);), options);
+            //setImage(getRotatedBitmap(getRotatedBitmap(getRotatedBitmap(originalBm, mDeviceRotation),mDeviceRotation),mDeviceRotation));
+            if(vo.getSender().equals("")){
+                Toast.makeText(getApplicationContext(),"보내는 사람을 입력해주세요.",Toast.LENGTH_SHORT).show();
+            }else if(vo.getRecipent().equals("")){
+                Toast.makeText(getApplicationContext(),"받는 사람을 입력해주세요.",Toast.LENGTH_SHORT).show();
+            }
+           // gMailSender.sendMail(subject, imgsrc.get(imgsrc.size() - 1).toString(), sender, recipient, imgFile,vo);
+            gMailSender.sendMail(imgFile,vo);
             Toast.makeText(getApplicationContext(), "이메일을 성공적으로 보냈습니다.", Toast.LENGTH_SHORT).show();
+            imgBit.clear();
+            imgFile.clear();
+            for(int i=0;i<imgsrc.size();i++){
+                File f = new File(imgsrc.get(i));
+                f.delete();
+            }
+            imgsrc.clear();
+            ll.removeAllViews();
         } catch (SendFailedException e) {
             Toast.makeText(getApplicationContext(), "이메일 형식이 잘못되었습니다.", Toast.LENGTH_SHORT).show();
         } catch (MessagingException e) {
@@ -434,9 +486,53 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(getApplicationContext(),"사진을 먼저 찍어주세요.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "사진을 먼저 찍어주세요.", Toast.LENGTH_SHORT).show();
         }
+    }
 
+    public void set_mail(View view) {
+        set_mail_content();
+        L1.setVisibility(View.GONE);
+        L2.setVisibility(View.VISIBLE);
+    }
+
+    public void save_content(View v) {
+        EditText sender1 = findViewById(R.id.sender);
+        EditText recipent1 = findViewById(R.id.recipent);
+        EditText subject1 = findViewById(R.id.subject);
+        EditText content1 = findViewById(R.id.content);
+        EditText filename1 = findViewById(R.id.fileName);
+        vo.setSender(sender1.getText().toString());
+        vo.setRecipent(recipent1.getText().toString());
+        vo.setSubject(subject1.getText().toString());
+        vo.setContent(content1.getText().toString());
+        vo.setFileName(filename1.getText().toString());
+        dbHelper.update(vo);
+        Toast.makeText(getApplicationContext(),"저장되었습니다.",Toast.LENGTH_SHORT).show();
+
+        L1.setVisibility(View.VISIBLE);
+        L2.setVisibility(View.GONE);
+    }
+    public void set_mail_content(){
+        EditText sender1 = findViewById(R.id.sender);
+        EditText recipent1 = findViewById(R.id.recipent);
+        EditText subject1 = findViewById(R.id.subject);
+        EditText content1 = findViewById(R.id.content);
+        EditText filename1 = findViewById(R.id.fileName);
+        MailVO v = dbHelper.getResult();
+        sender1.setText(v.getSender());
+        recipent1.setText(v.getRecipent());
+        subject1.setText(v.getSubject());
+        content1.setText(v.getContent());
+        filename1.setText(v.getFileName());
+        vo = v;
+        System.out.println("asdf \n" + vo.getAll());
+    }
+
+    public void send_email2(View view) {
+        L1.setVisibility(View.VISIBLE);
+        L2.setVisibility(View.GONE);
+        send_email(view);
     }
 
     private class SaveImageTask extends AsyncTask<Bitmap, Void, Void> {
@@ -445,6 +541,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Toast.makeText(MainActivity.this, "사진을 저장하였습니다.", Toast.LENGTH_SHORT).show();
+            setImage();
         }
 
         @Override
@@ -457,7 +554,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            insertImage(getContentResolver(), bitmap, "zxcv"+System.currentTimeMillis(), "asdf");
+            insertImage(getContentResolver(), bitmap, "zxcv" + System.currentTimeMillis(), "asdf");
 
             return null;
         }
@@ -466,17 +563,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     // 출처 https://stackoverflow.com/a/43516672
-    private void setAspectRatioTextureView(int ResolutionWidth , int ResolutionHeight )
-    {
-        if(ResolutionWidth > ResolutionHeight){
+    private void setAspectRatioTextureView(int ResolutionWidth, int ResolutionHeight) {
+        if (ResolutionWidth > ResolutionHeight) {
             int newWidth = mDSI_width;
-            int newHeight = ((mDSI_width * ResolutionWidth)/ResolutionHeight);
-            updateTextureViewSize(newWidth,newHeight);
+            int newHeight = ((mDSI_width * ResolutionWidth) / ResolutionHeight);
+            updateTextureViewSize(newWidth, newHeight);
 
-        }else {
+        } else {
             int newWidth = mDSI_width;
-            int newHeight = ((mDSI_width * ResolutionHeight)/ResolutionWidth);
-            updateTextureViewSize(newWidth,newHeight);
+            int newHeight = ((mDSI_width * ResolutionHeight) / ResolutionWidth);
+            updateTextureViewSize(newWidth, newHeight);
         }
 
     }
@@ -485,12 +581,30 @@ public class MainActivity extends AppCompatActivity {
         Log.d("@@@", "TextureView Width : " + viewWidth + " TextureView Height : " + viewHeight);
         //mSurfaceView.setLayoutParams(new LinearLayout.LayoutParams(viewWidth/2, viewHeight));
     }
-    public void setImage(Bitmap bitmap){
+
+    public void setImage() {
+        Iterator<Bitmap> iter;
+        ImageView imageView;
         try {
-            imageView.setImageBitmap(getRotatedBitmap(bitmap, mDeviceRotation));
-        } catch (Exception e) {
+            File file = new File(imgsrc.get(imgsrc.size() - 1));
+            imgFile.add(file);
+        }catch (Exception e){
             e.printStackTrace();
+            Toast.makeText(getApplicationContext(),"예상치 못한 내부 오류 발생\n이미지를 삭제하셨습니까?",Toast.LENGTH_SHORT).show();
         }
+        ll.removeAllViews();
+        if ((iter = imgBit.iterator()) != null)
+            for (int i = 0; i < imgBit.size(); i++) {
+                try {
+                    imageView = new ImageView(this);
+                    imageView.setPadding(10, 10, 0, 10);
+                    imageView.setLayoutParams(new LayoutParams(hs.getHeight(), hs.getHeight()));
+                    imageView.setImageBitmap(getRotatedBitmap(imgBit.get(i), mDeviceRotation));
+                    ll.addView(imageView);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
     }
 
 }

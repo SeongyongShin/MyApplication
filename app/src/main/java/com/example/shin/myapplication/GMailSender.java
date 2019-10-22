@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.PasswordAuthentication;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import javax.activation.CommandMap;
@@ -16,6 +18,7 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.activation.MailcapCommandMap;
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.Multipart;
 import javax.mail.Session;
@@ -31,6 +34,7 @@ public class GMailSender extends javax.mail.Authenticator
     private String user;
     private String password;
     private Session session;
+    private MailVO vo;
 
     public GMailSender(String user, String password)
     {
@@ -55,48 +59,10 @@ public class GMailSender extends javax.mail.Authenticator
         return new javax.mail.PasswordAuthentication(user, password);
     }
 
-    public synchronized void sendMail(String subject, String body, String sender, String recipients,File attachment)
+    public synchronized void sendMail(ArrayList<File> attachment,MailVO vo1)
             throws Exception
     {
-
-//        MimeMessage message = new MimeMessage(session);
-//        message.setContent("<h1>This is a test</h1>",
-//                "text/html");
-//        DataHandler handler = new DataHandler(
-//                new ByteArrayDataSource(body.getBytes(), "text/html"));
-//        message.setContent("<h1>This is a test</h1>",
-//                "text/html");
-//
-//        message.setContent("<h1>This is a test</h1>"
-//                        + "<img src=\""+mm+"\">"+ "<img src="+mm+">",
-//                "text/html");
-//                DataHandler handler = new DataHandler(
-//                new ByteArrayDataSource(body.getBytes(), "text/plain"));
-//
-//        message.setSender(new InternetAddress(sender));
-//        message.setSubject(subject);
-//        if(attachment!=null){
-//            MimeBodyPart mbp1 = new MimeBodyPart();
-//            mbp1.setText(body);
-//            MimeBodyPart mbp2 = new MimeBodyPart();
-//            FileDataSource fds = new FileDataSource(attachment);
-//            mbp2.setDataHandler(new DataHandler(fds));
-//            mbp2.setFileName(fds.getName());
-//            Multipart mp = new MimeMultipart();
-//            mp.addBodyPart(mbp1);
-//            mp.addBodyPart(mbp2);
-//            message.setContent(mp);
-//        }
-//        //message.setDataHandler(handler);
-//        if (recipients.indexOf(',') > 0)
-//            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipients));
-//        else
-//            message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipients));
-//        try {
-//            Transport.send(message);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        this.vo = vo1;
         MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap();
         mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
         mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml");
@@ -104,26 +70,40 @@ public class GMailSender extends javax.mail.Authenticator
         mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
         mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
         MimeMessage message = new MimeMessage(session);
-        DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
-        message.setSender(new InternetAddress(sender));
-        message.setSubject(subject);
-        message.setDataHandler(handler);
+        //DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/html"));
+        //message.setSender(new InternetAddress(new String(vo.getSender().getBytes(Charset.defaultCharset()), "UTF-8"),vo.getSender()));
+
+        message.setSubject(vo.getSubject());
+        message.setFrom(new InternetAddress("asdf@asdf.asdf",vo.getSender()));
+        //message.setDataHandler(handler);
         if(attachment!=null){
             MimeBodyPart mbp1 = new MimeBodyPart();
-            mbp1.setText("asdf");
-            MimeBodyPart mbp2 = new MimeBodyPart();
-            FileDataSource fds = new FileDataSource(attachment);
-            mbp2.setDataHandler(new DataHandler(fds));
-            mbp2.setFileName("test12");
+            mbp1.setText(vo.getContent());
+            ArrayList<MimeBodyPart> mbp = new ArrayList<>();
+
+            for(int i=0;i<attachment.size();i++) {
+                MimeBodyPart mbp2 = new MimeBodyPart();
+                FileDataSource fds = new FileDataSource(attachment.get(i));
+                mbp2.setDataHandler(new DataHandler(fds));
+                mbp2.setFileName(vo.getFileName()+(i+1)+".jpg");
+                mbp.add(mbp2);
+            }
+
             Multipart mp = new MimeMultipart();
             mp.addBodyPart(mbp1);
-            mp.addBodyPart(mbp2);
+            for(int i=0;i<attachment.size();i++) {
+                mp.addBodyPart(mbp.get(i));
+            }
             message.setContent(mp);
         }
-        if (recipients.indexOf(',') > 0)
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipients));
+        try{
+        if (vo.getRecipent().indexOf(',') > 0)
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(vo.getRecipent()));
         else
-            message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipients));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(vo.getRecipent()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         Transport.send(message);
     }
 
