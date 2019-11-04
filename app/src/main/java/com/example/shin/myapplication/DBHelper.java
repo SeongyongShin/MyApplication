@@ -38,14 +38,6 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-
-    public void insert(MailVO vo) {
-        // 읽고 쓰기가 가능하게 DB 열기
-//        SQLiteDatabase db = getWritableDatabase();
-//        // DB에 입력한 값으로 행 추가
-//        db.execSQL("INSERT INTO SYTABLE VALUES(1, '" + vo.getSender() + "', '" + vo.getRecipent() + "', '" + vo.getSubject() + "', '" + vo.getFileName() + "', '" + vo.getContent() + "');");
-//        db.close();
-    }
     public void update(MailVO vo) {
         SQLiteDatabase db = getWritableDatabase();
         // 입력한 항목과 일치하는 행의 정보 수정

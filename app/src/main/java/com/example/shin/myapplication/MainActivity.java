@@ -6,6 +6,7 @@ import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.MediaActionSound;
 import android.os.Bundle;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
@@ -62,6 +63,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ImageButton;
+import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.view.ViewGroup.LayoutParams;
 
@@ -72,6 +75,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.mail.MessagingException;
 import javax.mail.SendFailedException;
@@ -91,13 +96,15 @@ public class MainActivity extends AppCompatActivity {
     private SensorManager mSensorManager;
     private DeviceOrientation deviceOrientation;
     int mDSI_height, mDSI_width;
+    public RadioGroup rg;
     public LinearLayout ll;
-    public LinearLayout L1;
+    public RelativeLayout L1;
     public LinearLayout L2;
     public ConstraintLayout C1;
     public HorizontalScrollView hs;
     public ArrayList<String> imgsrc;
     public ArrayList<Bitmap> imgBit;
+    public ArrayList<Bitmap> imgBit1;
     public ArrayList<File> imgFile;
     public String subject = "";
     public String sender = "";
@@ -105,8 +112,16 @@ public class MainActivity extends AppCompatActivity {
     public String user = "noreply3875@gmail.com";
     private String passwd = "AEjHL4NerXmmo1WG8aPs_Cebc5ZWTkEHwI37IywIbbwuL22rQrl-LV93YFUPyxRDU0rNrd1QWlq-VxAWOjno-HR-m-RBzOFHeg";
     private MailVO vo;
+    EditText sender1 ;
+    EditText recipent1;
+    EditText subject1;
+    EditText content1;
+    EditText filename1;
+    private SurfaceView sf;
+    private HorizontalScrollView hs1;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     DBHelper dbHelper;
+    MediaActionSound mediaActionSound;
     static {
         ORIENTATIONS.append(ExifInterface.ORIENTATION_NORMAL, 0);
         ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_90, 90);
@@ -118,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mediaActionSound = new MediaActionSound();
 
         // 상태바를 안보이도록 합니다.
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -128,10 +144,18 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         imgsrc = new ArrayList<>();
         setContentView(R.layout.activity_main);
+        sender1 = findViewById(R.id.sender);
+        recipent1 = findViewById(R.id.recipent);
+        subject1 = findViewById(R.id.subject);
+        content1 = findViewById(R.id.content);
+        filename1 = findViewById(R.id.fileName);
+        sf = findViewById(R.id.surfaceView);
+        hs1 = findViewById(R.id.hs);
         Button button = findViewById(R.id.take_photo);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
                 takePicture();
             }
         });
@@ -153,11 +177,13 @@ public class MainActivity extends AppCompatActivity {
         }
         dbHelper.delete();
         imgBit = new ArrayList<>();
+        imgBit1 = new ArrayList<>();
         imgFile = new ArrayList<>();
         hs = findViewById(R.id.hs);
         L1 = findViewById(R.id.L1);
         L2 = findViewById(R.id.L2);
         C1 = findViewById(R.id.c1);
+        rg = findViewById(R.id.rg);
         initSurfaceView();
 
         set_mail_content();
@@ -188,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         mSurfaceViewHolder = mSurfaceView.getHolder();
+        mSurfaceViewHolder.setFixedSize(mDSI_width,mDSI_height/2);
         mSurfaceViewHolder.addCallback(new SurfaceHolder.Callback() {
 
             @Override
@@ -230,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
             Size largestPreviewSize = map.getOutputSizes(ImageFormat.JPEG)[0];
             Log.i("LargestSize", largestPreviewSize.getWidth() + " " + largestPreviewSize.getHeight());
 
-            setAspectRatioTextureView(largestPreviewSize.getHeight(), largestPreviewSize.getWidth());
+            //setAspectRatioTextureView(largestPreviewSize.getHeight()/2, largestPreviewSize.getWidth());
 
             mImageReader = ImageReader.newInstance(largestPreviewSize.getWidth(), largestPreviewSize.getHeight(), ImageFormat.JPEG,/*maxImages*/7);
             mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mainHandler);
@@ -247,19 +274,31 @@ public class MainActivity extends AppCompatActivity {
     private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-
+            int size = 1;
+            switch (Integer.valueOf(rg.getCheckedRadioButtonId())%10){
+                case 2:
+                    break;
+                case 4: size = 4;
+                    break;
+                case 7: size = 2;
+                    break;
+            }
+            System.out.println("asd "+size);
             Image image = reader.acquireNextImage();
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
             BitmapFactory.Options op = new BitmapFactory.Options();
-            op.inSampleSize = 4;
+            op.inSampleSize = size;
             final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, op);
+            op.inSampleSize = 4;
+            final Bitmap bitmap1 = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, op);
             //setImage(bitmap);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     imgBit.add(bitmap);
+                    imgBit1.add(bitmap1);
 
                     new SaveImageTask().execute(bitmap);
 //                    BitmapFactory.Options options = new BitmapFactory.Options();
@@ -361,7 +400,6 @@ public class MainActivity extends AppCompatActivity {
             // 센서를 사용하는 것으로 변경
             //deviceRotation = getResources().getConfiguration().orientation;
             mDeviceRotation = ORIENTATIONS.get(deviceOrientation.getOrientation());
-            Log.d("@@@", mDeviceRotation + "");
 
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, mDeviceRotation);
             CaptureRequest mCaptureRequest = captureRequestBuilder.build();
@@ -472,35 +510,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void send_email(View view) {
-                sending();
+        vo.setSubject(subject1.getText().toString());
+        vo.setContent(content1.getText().toString());
+        vo.setFileName(filename1.getText().toString());
+        sending();
+    }
+    public boolean checkEmail(String email){
+        String regex = "^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(email);
+        boolean isNormal = m.matches();
+        return isNormal;
     }
     public void sending(){
         try {
-
-            GMailSender gMailSender = new GMailSender(user, passwd);
             //GMailSender.sendMail(제목, 본문내용, 받는사람);), options);
-            //setImage(getRotatedBitmap(getRotatedBitmap(getRotatedBitmap(originalBm, mDeviceRotation),mDeviceRotation),mDeviceRotation));
-            if (vo.getSender().equals("")) {
+            if (sender1.getText().toString().equals("")) {
                 Toast.makeText(getApplicationContext(), "보내는 사람을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
-            } else if (vo.getRecipent().equals("")) {
-                Toast.makeText(getApplicationContext(), "받는 사람을 입력해주세요.", Toast.LENGTH_SHORT).show();
+            }
+            if(!checkEmail(recipent1.getText().toString())){
+                Toast.makeText(getApplicationContext(), "받는 사람을 정상적으로 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // gMailSender.sendMail(subject, imgsrc.get(imgsrc.size() - 1).toString(), sender, recipient, imgFile,vo);
-
+            GMailSender gMailSender = new GMailSender(user, passwd);
             gMailSender.sendMail(imgFile, vo);
-            Toast.makeText(getApplicationContext(), "이메일을 성공적으로 보냈습니다.", Toast.LENGTH_SHORT).show();
-            imgBit.clear();
-            imgFile.clear();
-            for (int i = 0; i < imgsrc.size(); i++) {
-                File f = new File(imgsrc.get(i));
-                f.delete();
-            }
-            imgsrc.clear();
-            ll.removeAllViews();
         } catch (SendFailedException e) {
-            Toast.makeText(getApplicationContext(), "이메일 형식이 잘못되었습니다.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "받는 사람을 정상적으로 입력해주세요.", Toast.LENGTH_SHORT).show();
         } catch (MessagingException e) {
             Toast.makeText(getApplicationContext(), "인터넷 연결을 확인해주십시오", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
@@ -508,6 +544,17 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "사진을 먼저 찍어주세요.", Toast.LENGTH_SHORT).show();
         }
+        imgBit.clear();
+        imgBit1.clear();
+        imgFile.clear();
+        for (int i = 0; i < imgsrc.size(); i++) {
+            File f = new File(imgsrc.get(i));
+            f.delete();
+        }
+        imgsrc.clear();
+        ll.removeAllViews();
+        Toast.makeText(getApplicationContext(), "이메일을 성공적으로 보냈습니다.", Toast.LENGTH_SHORT).show();
+        //finish();
     }
     public void set_mail(View view) {
         set_mail_content();
@@ -516,36 +563,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void save_content(View v) {
-        EditText sender1 = findViewById(R.id.sender);
-        EditText recipent1 = findViewById(R.id.recipent);
-        EditText subject1 = findViewById(R.id.subject);
-        EditText content1 = findViewById(R.id.content);
-        EditText filename1 = findViewById(R.id.fileName);
         vo.setSender(sender1.getText().toString());
         vo.setRecipent(recipent1.getText().toString());
-        vo.setSubject(subject1.getText().toString());
         vo.setContent(content1.getText().toString());
-        vo.setFileName(filename1.getText().toString());
+        vo.setSubject(subject1.getText().toString());
+        //vo.setFileName(filename1.getText().toString());
         dbHelper.update(vo);
-        Toast.makeText(getApplicationContext(),"저장되었습니다.",Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(),"저장되었습니다.",Toast.LENGTH_SHORT).show();
 
         L1.setVisibility(View.VISIBLE);
         L2.setVisibility(View.GONE);
     }
     public void set_mail_content(){
-        EditText sender1 = findViewById(R.id.sender);
-        EditText recipent1 = findViewById(R.id.recipent);
-        EditText subject1 = findViewById(R.id.subject);
-        EditText content1 = findViewById(R.id.content);
-        EditText filename1 = findViewById(R.id.fileName);
         MailVO v = dbHelper.getResult();
         sender1.setText(v.getSender());
         recipent1.setText(v.getRecipent());
-        subject1.setText(v.getSubject());
+       // subject1.setText(v.getSubject());
         content1.setText(v.getContent());
-        filename1.setText(v.getFileName());
-        vo = v;
-        System.out.println("asdf \n" + vo.getAll());
+       // filename1.setText(v.
     }
 
     public void send_email2(View view) {
@@ -564,6 +599,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void clear_photo(View view) {
         imgBit.clear();
+        imgBit1.clear();
         imgFile.clear();
         for (int i = 0; i < imgsrc.size(); i++) {
             File f = new File(imgsrc.get(i));
@@ -623,6 +659,19 @@ public class MainActivity extends AppCompatActivity {
     public void setImage() {
         Iterator<Bitmap> iter;
         ImageView imageView;
+        ll.removeAllViews();
+        if ((iter = imgBit1.iterator()) != null)
+            for (int i = 0; i < imgBit1.size(); i++) {
+                try {
+                    imageView = new ImageView(this);
+                    imageView.setPadding(10, 10, 0, 10);
+                    imageView.setLayoutParams(new LayoutParams(hs.getHeight(), hs.getHeight()));
+                    imageView.setImageBitmap(getRotatedBitmap(imgBit1.get(i), mDeviceRotation));
+                    ll.addView(imageView);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         try {
             File file = new File(imgsrc.get(imgsrc.size() - 1));
             imgFile.add(file);
@@ -630,19 +679,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),"예상치 못한 내부 오류 발생\n이미지를 삭제하셨습니까?",Toast.LENGTH_SHORT).show();
         }
-        ll.removeAllViews();
-        if ((iter = imgBit.iterator()) != null)
-            for (int i = 0; i < imgBit.size(); i++) {
-                try {
-                    imageView = new ImageView(this);
-                    imageView.setPadding(10, 10, 0, 10);
-                    imageView.setLayoutParams(new LayoutParams(hs.getHeight(), hs.getHeight()));
-                    imageView.setImageBitmap(getRotatedBitmap(imgBit.get(i), mDeviceRotation));
-                    ll.addView(imageView);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
     }
 
 }

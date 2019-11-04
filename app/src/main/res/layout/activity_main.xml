@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/L1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,24 +15,83 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <SurfaceView
-            android:id="@+id/surfaceView"
+        <LinearLayout
+            android:id="@+id/lll"
             android:layout_width="match_parent"
-            android:layout_height="382dp"
-            android:layout_gravity="center"
-            android:background="#00C7C5C5" />
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+
+            <SurfaceView
+                android:id="@+id/surfaceView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="#00C7C5C5" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lll"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/t9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="파일 사이즈 설정 :"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+            <RadioGroup
+                android:id="@+id/rg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/a100"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="원본(100%)" />
+
+                <RadioButton
+                    android:id="@+id/b50"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50%" />
+
+                <RadioButton
+                    android:id="@+id/c25"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="25%" />
+            </RadioGroup>
+
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/take_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/llll"
+            android:layout_centerInParent="true"
+            android:soundEffectsEnabled="true"
             android:text="촬영하기"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <HorizontalScrollView
             android:id="@+id/hs"
             android:layout_width="match_parent"
-            android:layout_height="148dp"
+            android:layout_height="match_parent"
+            android:layout_above="@id/send_email"
+            android:layout_below="@id/take_photo"
             android:background="#00C7C5C5">
 
             <LinearLayout
@@ -43,47 +102,36 @@
                 android:orientation="horizontal" />
         </HorizontalScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/send_email"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/setting_mail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:onClick="set_mail"
-                android:text="본문 설정하기"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-            <Button
-                android:id="@+id/send_email"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:onClick="send_email"
-                android:text="이메일 보내기"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-        </LinearLayout>
+            android:layout_above="@id/clear1"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:onClick="set_mail"
+            android:text="이메일 보내기"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <Button
             android:id="@+id/clear1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_above="@id/clear"
+            android:layout_centerInParent="true"
             android:onClick="clear_photo"
             android:text="사진 초기화" />
 
         <TextView
-            android:id="@+id/textView11"
+            android:id="@+id/clear"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
             android:gravity="center"
-            android:text="버그는 ssystarsky@naver.com 으로 부탁드립니다.\n app ver(1.0.0)" />
+            android:text="버그는 ssystarsky@naver.com 으로 부탁드립니다.\n app ver(1.0.1)"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/L2"
@@ -109,8 +157,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="보내는 사람"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                android:text="보내는 사람 :"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
             <EditText
                 android:id="@+id/sender"
@@ -132,8 +180,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="받는 사람"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                android:text="받는 사람 :"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
             <EditText
                 android:id="@+id/recipent"
@@ -155,8 +203,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="제목"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                android:text="제목 :"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
             <EditText
                 android:id="@+id/subject"
@@ -178,8 +226,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="파일명"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                android:text="파일명 :"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
             <EditText
                 android:id="@+id/fileName"
@@ -190,6 +238,8 @@
                 android:hint="파일명 ( + 숫자 자동 추가 )"
                 android:inputType="textPersonName" />
         </LinearLayout>
+
+
 
         <EditText
             android:id="@+id/content"
@@ -206,13 +256,13 @@
             android:layout_weight="0"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/save"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="save_content"
-                android:text="저장하기" />
+                        <Button
+                            android:id="@+id/save"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:onClick="save_content"
+                            android:text="뒤로 가기" />
 
             <Button
                 android:id="@+id/send_mail2"
@@ -220,7 +270,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="send_email2"
-                android:text="메일 보내기" />
+                android:text="발송 후 종료" />
         </LinearLayout>
 
         <TextView
@@ -246,7 +296,7 @@
             android:layout_height="96dp"
             android:layout_marginStart="16dp"
             android:gravity="center"
-            android:text="초간단 이메일 전송!"
+            android:text="간단 이메일 전송!"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -270,20 +320,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.677" />
 
-        <TextView
-            android:id="@+id/clear"
-            android:layout_width="366dp"
-            android:layout_height="96dp"
-            android:layout_marginStart="16dp"
-            android:gravity="center"
-            android:text="버그는 ssystarsky@naver.com 으로 부탁드립니다.\n app ver(1.0.0)"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.448"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.974" />
     </android.support.constraint.ConstraintLayout>
 
 </LinearLayout>

@@ -3,6 +3,8 @@ import android.app.AlertDialog;
 import android.content.pm.PackageInstaller;
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.RadioGroup;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -52,7 +54,6 @@ public class GMailSender extends javax.mail.Authenticator
         props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         props.put("mail.smtp.socketFactory.fallback", "false");
         props.setProperty("mail.smtp.quitwait", "false");
-
         session = Session.getDefaultInstance(props, this);
     }
 
@@ -61,7 +62,7 @@ public class GMailSender extends javax.mail.Authenticator
         return new javax.mail.PasswordAuthentication(user, password);
     }
 
-    public synchronized void sendMail(ArrayList<File> attachment,MailVO vo1)
+    public void sendMail(ArrayList<File> attachment,MailVO vo1)
             throws Exception
     {
         this.vo = vo1;
@@ -78,7 +79,7 @@ public class GMailSender extends javax.mail.Authenticator
         message.setSubject(vo.getSubject());
         message.setFrom(new InternetAddress("asdf@asdf.asdf",vo.getSender()));
         //message.setDataHandler(handler);
-        if(attachment!=null){
+        if(vo1!=null){
             MimeBodyPart mbp1 = new MimeBodyPart();
             mbp1.setText(vo.getContent());
             ArrayList<MimeBodyPart> mbp = new ArrayList<>();
@@ -98,14 +99,11 @@ public class GMailSender extends javax.mail.Authenticator
             }
             message.setContent(mp);
         }
-        try{
         if (vo.getRecipent().indexOf(',') > 0)
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(vo.getRecipent()));
         else
             message.setRecipient(Message.RecipientType.TO, new InternetAddress(vo.getRecipent()));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+
         Transport.send(message);
     }
 
