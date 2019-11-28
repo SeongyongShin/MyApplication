@@ -1,6 +1,7 @@
 package com.example.shin.myapplication;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
@@ -54,6 +55,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -85,6 +87,7 @@ import javax.mail.MessagingException;
 import javax.mail.SendFailedException;
 
 public class MainActivity extends AppCompatActivity {
+    public static  Activity act;
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceViewHolder;
     private Handler mHandler;
@@ -122,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tempFileText;
     private SurfaceView sf;
     private HorizontalScrollView hs1;
+    public ConstraintLayout aftersend;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     DBHelper dbHelper;
@@ -138,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         mediaActionSound = new MediaActionSound();
-
         // 상태바를 안보이도록 합니다.
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         tempFileText = findViewById(R.id.tempFileText);
         sf = findViewById(R.id.surfaceView);
         hs1 = findViewById(R.id.hs);
+        aftersend = findViewById(R.id.afterSend);
         Button button = findViewById(R.id.take_photo);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -543,12 +547,13 @@ public class MainActivity extends AppCompatActivity {
         return cursor.getString(column_index);
     }
 
-    public void send_email(View view) {
+    public void send_email(View view){
         vo.setSubject(subject1.getText().toString());
         vo.setContent(content1.getText().toString());
         vo.setFileName(filename1.getText().toString());
         sending();
     }
+
     public boolean checkEmail(String email){
         String regex = "^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$";
         Pattern p = Pattern.compile(regex);
@@ -557,26 +562,35 @@ public class MainActivity extends AppCompatActivity {
         return isNormal;
     }
     public void sending(){
+        Handler mHandler = new Handler(Looper.getMainLooper());
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
         try {
             //GMailSender.sendMail(제목, 본문내용, 받는사람);), options);
             if (sender1.getText().toString().equals("")) {
                 Toast.makeText(getApplicationContext(), "보내는 사람을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                L2.setVisibility(View.VISIBLE);
                 return;
             }
             if(!checkEmail(recipent1.getText().toString())){
                 Toast.makeText(getApplicationContext(), "받는 사람을 정상적으로 입력해주세요.", Toast.LENGTH_SHORT).show();
+                L2.setVisibility(View.VISIBLE);
                 return;
             }
             GMailSender gMailSender = new GMailSender(user, passwd);
             gMailSender.sendMail(imgFile, vo);
         } catch (SendFailedException e) {
             Toast.makeText(getApplicationContext(), "받는 사람을 정상적으로 입력해주세요.", Toast.LENGTH_SHORT).show();
+            L2.setVisibility(View.VISIBLE);
         } catch (MessagingException e) {
             Toast.makeText(getApplicationContext(), "인터넷 연결을 확인해주십시오", Toast.LENGTH_SHORT).show();
+            L2.setVisibility(View.VISIBLE);
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "사진을 먼저 찍어주세요.", Toast.LENGTH_SHORT).show();
+            L2.setVisibility(View.VISIBLE);
         }
         imgBit.clear();
         imgBit1.clear();
@@ -587,8 +601,20 @@ public class MainActivity extends AppCompatActivity {
         }
         imgsrc.clear();
         ll.removeAllViews();
+                try {
+                    Thread.sleep(5000);
+                    aftermail();
+                    return;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        },0);
+
+    }
+    public void aftermail(){
         Toast.makeText(getApplicationContext(), "이메일을 성공적으로 보냈습니다.", Toast.LENGTH_SHORT).show();
-        //finish();
+        finish();
     }
     public void set_mail(View view) {
         set_mail_content();
@@ -622,10 +648,11 @@ public class MainActivity extends AppCompatActivity {
        // filename1.setText(v.
     }
 
-    public void send_email2(View view) {
+    public void send_email2(View view){
         save_content(view);
-        L1.setVisibility(View.VISIBLE);
+        L1.setVisibility(View.GONE);
         L2.setVisibility(View.GONE);
+        aftersend.setVisibility(View.VISIBLE);
         set_mail_content();
         send_email(view);
     }
@@ -674,7 +701,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    // 출처 https://stackoverflow.com/a/43516672
 
     private void setAspectRatioTextureView(int ResolutionWidth, int ResolutionHeight) {
         if (ResolutionWidth > ResolutionHeight) {

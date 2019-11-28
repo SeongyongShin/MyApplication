@@ -2,6 +2,8 @@ package com.example.shin.myapplication;
 import android.app.AlertDialog;
 import android.content.pm.PackageInstaller;
 import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -30,6 +32,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+
+import static com.example.shin.myapplication.MainActivity.act;
 
 public class GMailSender extends javax.mail.Authenticator
 {
@@ -64,6 +68,7 @@ public class GMailSender extends javax.mail.Authenticator
     public void sendMail(ArrayList<File> attachment,MailVO vo1)
             throws Exception
     {
+
         this.vo = vo1;
         MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap();
         mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
