@@ -139,7 +139,7 @@
         android:layout_height="match_parent"
         android:background="#00FFFFFF"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <TextView
             android:id="@+id/textView"
@@ -240,6 +240,10 @@
         </LinearLayout>
 
 
+        <TextView
+            android:id="@+id/tempFileText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <EditText
             android:id="@+id/content"
@@ -256,13 +260,13 @@
             android:layout_weight="0"
             android:orientation="horizontal">
 
-                        <Button
-                            android:id="@+id/save"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:onClick="save_content"
-                            android:text="뒤로 가기" />
+            <Button
+                android:id="@+id/save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="save_content"
+                android:text="뒤로 가기" />
 
             <Button
                 android:id="@+id/send_mail2"

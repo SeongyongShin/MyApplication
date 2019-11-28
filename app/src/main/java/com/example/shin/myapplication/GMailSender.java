@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.RadioGroup;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;

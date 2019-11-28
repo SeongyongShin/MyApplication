@@ -48,6 +48,8 @@ import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
@@ -65,6 +67,7 @@ import android.widget.LinearLayout;
 import android.widget.ImageButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.view.ViewGroup.LayoutParams;
 
@@ -82,7 +85,6 @@ import javax.mail.MessagingException;
 import javax.mail.SendFailedException;
 
 public class MainActivity extends AppCompatActivity {
-
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceViewHolder;
     private Handler mHandler;
@@ -117,8 +119,10 @@ public class MainActivity extends AppCompatActivity {
     EditText subject1;
     EditText content1;
     EditText filename1;
+    TextView tempFileText;
     private SurfaceView sf;
     private HorizontalScrollView hs1;
+
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     DBHelper dbHelper;
     MediaActionSound mediaActionSound;
@@ -149,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
         subject1 = findViewById(R.id.subject);
         content1 = findViewById(R.id.content);
         filename1 = findViewById(R.id.fileName);
+        tempFileText = findViewById(R.id.tempFileText);
         sf = findViewById(R.id.surfaceView);
         hs1 = findViewById(R.id.hs);
         Button button = findViewById(R.id.take_photo);
@@ -157,6 +162,30 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
                 takePicture();
+            }
+        });
+        filename1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                String temp = "";
+                for(int i=1;i<=imgsrc.size();i++) {
+                    temp +="[" + filename1.getText() + String.valueOf(i) + ".jpg] ";
+                }
+                tempFileText.setHint(temp);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String temp = "";
+                for(int i=1;i<=imgsrc.size();i++) {
+                    temp +="[" + filename1.getText() + String.valueOf(i) + ".jpg] ";
+                }
+                tempFileText.setHint(temp);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
@@ -239,7 +268,14 @@ public class MainActivity extends AppCompatActivity {
 
         });
     }
-
+    //삭제후 삭제 처리를 위한 새로고침
+    private void galleryAddPic(String currentPhotoPath) {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_MOUNTED);
+        File f = new File(currentPhotoPath); //새로고침할 사진경로
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
+    }
 
     @TargetApi(19)
     public void initCameraAndPreview() {
@@ -442,8 +478,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //출처 - https://codeday.me/ko/qa/20190310/39556.html
-
     /**
      * A copy of the Android internals  insertImage method, this method populates the
      * meta data with DATE_ADDED and DATE_TAKEN. This fixes a common problem where media
@@ -580,6 +614,11 @@ public class MainActivity extends AppCompatActivity {
         recipent1.setText(v.getRecipent());
        // subject1.setText(v.getSubject());
         content1.setText(v.getContent());
+        String temp = "";
+        for(int i=1;i<=imgsrc.size();i++) {
+            temp +="[" + filename1.getText() + String.valueOf(i) + ".jpg] ";
+        }
+        tempFileText.setHint(temp);
        // filename1.setText(v.
     }
 
@@ -608,8 +647,8 @@ public class MainActivity extends AppCompatActivity {
         imgsrc.clear();
         ll.removeAllViews();
     }
-
     private class SaveImageTask extends AsyncTask<Bitmap, Void, Void> {
+
 
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -633,10 +672,10 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
+
     }
-
-
     // 출처 https://stackoverflow.com/a/43516672
+
     private void setAspectRatioTextureView(int ResolutionWidth, int ResolutionHeight) {
         if (ResolutionWidth > ResolutionHeight) {
             int newWidth = mDSI_width;
