@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
+                mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
                 takePicture();
             }
         });
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         mSurfaceViewHolder = mSurfaceView.getHolder();
-        mSurfaceViewHolder.setFixedSize(mDSI_width,mDSI_height/2);
+        mSurfaceViewHolder.setFixedSize(mDSI_width,mDSI_height/4 + mDSI_height/2);
         mSurfaceViewHolder.addCallback(new SurfaceHolder.Callback() {
 
             @Override
@@ -559,7 +559,8 @@ public class MainActivity extends AppCompatActivity {
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(email);
         boolean isNormal = m.matches();
-        return isNormal;
+//        return isNormal;
+        return true;
     }
     public void sending(){
         Handler mHandler = new Handler(Looper.getMainLooper());
@@ -602,7 +603,7 @@ public class MainActivity extends AppCompatActivity {
         imgsrc.clear();
         ll.removeAllViews();
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(3000);
                     aftermail();
                     return;
                 } catch (InterruptedException e) {

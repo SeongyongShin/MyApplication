@@ -20,7 +20,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="visible">
 
             <SurfaceView
                 android:id="@+id/surfaceView"
@@ -35,7 +36,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/lll"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="visible">
 
             <TextView
                 android:id="@+id/t9"
@@ -43,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:text="파일 사이즈 설정 :"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
             <RadioGroup
                 android:id="@+id/rg"
@@ -76,22 +78,13 @@
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/take_photo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/llll"
-            android:layout_centerInParent="true"
-            android:soundEffectsEnabled="true"
-            android:text="촬영하기"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <HorizontalScrollView
             android:id="@+id/hs"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@id/send_email"
-            android:layout_below="@id/take_photo"
+            android:layout_above="@id/ll2"
+            android:layout_below="@id/llll"
             android:background="#00C7C5C5">
 
             <LinearLayout
@@ -102,25 +95,45 @@
                 android:orientation="horizontal" />
         </HorizontalScrollView>
 
-        <Button
-            android:id="@+id/send_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/clear1"
-            android:layout_centerInParent="true"
-            android:gravity="center"
-            android:onClick="set_mail"
-            android:text="이메일 보내기"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-        <Button
-            android:id="@+id/clear1"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/ll2"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@id/clear"
-            android:layout_centerInParent="true"
-            android:onClick="clear_photo"
-            android:text="사진 초기화" />
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/take_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:soundEffectsEnabled="true"
+                android:text="촬영하기"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
+            <Button
+                android:id="@+id/send_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:gravity="center"
+                android:onClick="set_mail"
+                android:text="이메일 보내기"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
+            <Button
+                android:id="@+id/clear1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:onClick="clear_photo"
+                android:text="사진 초기화"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/clear"
@@ -128,7 +141,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:gravity="center"
-            android:text="버그는 ssystarsky@naver.com 으로 부탁드립니다.\n app ver(1.0.1)"
+            android:text="문의 : ssystarsky@naver.com"
             android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
     </RelativeLayout>
